@@ -34,12 +34,11 @@ button:hover { background-color: #A9A9A9; transform: translateY(-2px); }
 <script>
 var currentTextIndex = 0;
 var sentencePairs = [];
-var lastFocusedInput = null;
-var vowels = ['a', 'e', 'i', 'o', 'u'];
+var vowels = ['a','e','i','o','u'];
 
 // Sentences
 var englishSentences = [
- "Art",
+"Art",
 "Business",
 "Biology",
 "Chemistry",
@@ -64,7 +63,7 @@ var englishSentences = [
 
 // Images
 var images = [
-"https://adaligand.github.io/EAL/School/Subjects/Images/Art.png",
+  "https://adaligand.github.io/EAL/School/Subjects/Images/Art.png",
 "https://adaligand.github.io/EAL/School/Subjects/Images/Business.png",
 "https://adaligand.github.io/EAL/School/Subjects/Images/Biology.png",
 "https://adaligand.github.io/EAL/School/Subjects/Images/Chemistry.png",
@@ -120,7 +119,7 @@ function generateChunk(){
   for(var i=0;i<sentenceObj.sentence.length;i++){
     var char = sentenceObj.sentence[i];
     if(vowels.includes(char.toLowerCase())){
-      sentenceWithInputs += `<input type="text" class="missing-word" data-index="${i}" oninput="validateCharacter(this)" onfocus="lastFocusedInput=this">`;
+      sentenceWithInputs += `<input type="text" class="missing-word" data-index="${i}" oninput="validateCharacter(this)">`;
     } else {
       sentenceWithInputs += char;
     }
@@ -149,15 +148,11 @@ function generateChunk(){
 function validateCharacter(input){
   var index = input.getAttribute('data-index');
   var correctChar = sentencePairs[currentTextIndex].sentence[index];
-  if(input.value.trim()===''){
-    input.classList.remove('correct','incorrect');
-  } else if(input.value.toLowerCase() === correctChar.toLowerCase()){
-    input.classList.add('correct');
-    input.classList.remove('incorrect');
-  } else {
-    input.classList.add('incorrect');
-    input.classList.remove('correct');
-  }
+  input.classList.remove('correct','incorrect');
+  if(input.value.trim()==='') return;
+  if(input.value.toLowerCase() === correctChar.toLowerCase()) input.classList.add('correct');
+  else input.classList.add('incorrect');
+
   if(input.value.length>0) jumpToNextInput(input);
   checkAnswers();
 }
@@ -175,11 +170,7 @@ function jumpToPreviousInput(input){
   while(prevInput && !prevInput.classList.contains('missing-word')){
     prevInput = prevInput.previousElementSibling;
   }
-  if(prevInput){
-    prevInput.focus();
-    prevInput.value='';
-    prevInput.classList.remove('correct','incorrect');
-  }
+  if(prevInput){ prevInput.focus(); prevInput.value=''; prevInput.classList.remove('correct','incorrect'); }
 }
 
 document.addEventListener('keydown', function(e){
@@ -195,10 +186,10 @@ document.addEventListener('keydown', function(e){
 function checkAnswers(){
   var sentenceDiv = document.querySelector('.sentence');
   var inputs = sentenceDiv.querySelectorAll('.missing-word');
-  var allFilled = true;
-  inputs.forEach(i=>{if(i.value==='') allFilled=false;});
+  var allCorrect = true;
+  inputs.forEach(i=>{ if(!i.classList.contains('correct')) allCorrect=false; });
   var nextBtn = document.getElementById('nextButton');
-  if(allFilled) nextBtn.classList.remove('hide');
+  if(allCorrect) nextBtn.classList.remove('hide');
   else nextBtn.classList.add('hide');
 }
 
