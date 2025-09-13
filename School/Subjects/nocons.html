@@ -86,11 +86,18 @@ var images = [
 
 ];
 
-function initializeExercise(){
-  for(var i=0;i<englishSentences.length;i++){
-    sentencePairs.push({sentence: englishSentences[i], image: images[i%images.length]});
+function initializeExercise() {
+  // Create sentencePairs
+  for (var i=0; i<englishSentences.length; i++){
+    sentencePairs.push({sentence: englishSentences[i], image: images[i % images.length]});
   }
+
+  // Shuffle sentencePairs
   shuffleArray(sentencePairs);
+
+  // Keep only the first 10 items
+  sentencePairs = sentencePairs.slice(0, 10);
+
   generateChunk();
 }
 
@@ -202,3 +209,4 @@ function nextText(){
 </script>
 </body>
 </html>
+
