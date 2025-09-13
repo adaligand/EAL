@@ -1,53 +1,44 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>No consonants</title>
-  <style>
-    body { font-family: Arial, sans-serif; }
-    .container { width: 100%; padding: 20px; box-sizing: border-box; font-size: 16px; }
-    .title { font-size: 40px; font-weight: bold; text-align: center; margin-bottom: 20px; }
-    .subtitle { font-size: 20px; margin-bottom: 10px; text-align: center; }
-    .counter { font-size: 24px; font-weight: bold; text-align: center; margin-bottom: 10px; }
-    .image-container { text-align: center; margin-bottom: 20px; }
-    .image-container img { 
-      width: 200px; 
-      height: 200px; 
-      object-fit: contain; 
-      border-radius: 10px; 
-      border: 2px solid #ccc; 
-    }
-    .sentence { margin-bottom: 20px; font-size: 20px; text-align: center; }
-    .missing-word { width: 15px; padding: 0; font-size: 20px; border: none; border-bottom: 0.5px solid #000; background-color: transparent; outline: none; margin-right: 2px; text-align: center; }
-    .correct { background-color: #cef4ce; }
-    .incorrect { background-color: #ffb6c19c; }
-    button { padding: 10px 20px; background-color: #f9f9f9; border: 2px solid #ccc; color: #000; border-radius: 10px; cursor: pointer; margin: 5px; }
-    button:hover { background-color: #A9A9A9; transform: translateY(-4px); }
-    .hide { display: none; }
-    .feedback { font-weight: bold; font-size: 18px; text-align: center; margin-top: 10px; }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>No consonants</title>
+<style>
+body { font-family: Arial, sans-serif; }
+.container { width: 100%; padding: 20px; box-sizing: border-box; font-size: 16px; }
+.title { font-size: 40px; font-weight: bold; text-align: center; margin-bottom: 20px; }
+.subtitle { font-size: 20px; margin-bottom: 10px; text-align: center; }
+.counter { font-size: 24px; font-weight: bold; text-align: center; margin-bottom: 10px; }
+.image-container { text-align: center; margin-bottom: 20px; }
+.image-container img { width: 200px; height: 200px; object-fit: contain; border-radius: 10px; border: 2px solid #ccc; }
+.sentence-wrapper { text-align: center; margin-bottom: 20px; }
+.sentence { display: inline-block; font-size: 20px; }
+.missing-word { width: 15px; padding: 0; font-size: 20px; border: none; border-bottom: 0.5px solid #000; background-color: transparent; outline: none; margin-right: 2px; text-align: center; display: inline-block; }
+.correct { background-color: #cef4ce; color: green; }
+.incorrect { background-color: #ffb6c19c; color: red; }
+button { padding: 5px 10px; border-radius: 5px; border: 2px solid #ccc; cursor: pointer; margin-left: 5px; display: inline-block; vertical-align: middle; }
+button:hover { background-color: #A9A9A9; transform: translateY(-2px); }
+.hide { display: none; }
+</style>
 </head>
 <body onload="initializeExercise()">
-  <div class="container">
-    <div class="title">No consonants</div>
-    <div class="subtitle">Fill in the sentence with the correct consonants.</div>
-    <div class="counter" id="sentenceCounter"></div>
-    <div id="exerciseOutput"></div>
-    <div class="input-container">
-      <div id="feedback" class="hide"></div>
-      <button id="resetButton" class="hide" onclick="resetActivity()">Restart</button>
-      <button id="nextButton" class="hide" onclick="nextText()">Next</button>
-    </div>
-  </div>
 
-  <script>
-    var currentTextIndex = 0;
-    var sentencePairs = [];
-    var vowels = ['a', 'e', 'i', 'o', 'u'];
+<div class="container">
+  <div class="title">No consonants</div>
+  <div class="subtitle">Fill in the sentence with the correct consonants.</div>
+  <div class="counter" id="sentenceCounter"></div>
+  <div id="exerciseOutput" class="sentence-wrapper"></div>
+</div>
 
-    var englishSentences = [
-     "Art",
+<script>
+var currentTextIndex = 0;
+var sentencePairs = [];
+var vowels = ['a','e','i','o','u'];
+
+// Sentences
+var englishSentences = [
+ "Art",
 "Business",
 "Biology",
 "Chemistry",
@@ -68,10 +59,11 @@
 "RHSE",
 "Psychology"
 
-    ];
+];
 
-    var images = [
-    "https://adaligand.github.io/EAL/School/Subjects/Images/Art.png",
+// Images
+var images = [
+"https://adaligand.github.io/EAL/School/Subjects/Images/Art.png",
 "https://adaligand.github.io/EAL/School/Subjects/Images/Business.png",
 "https://adaligand.github.io/EAL/School/Subjects/Images/Biology.png",
 "https://adaligand.github.io/EAL/School/Subjects/Images/Chemistry.png",
@@ -92,141 +84,118 @@
 "https://adaligand.github.io/EAL/School/Subjects/Images/RSHE.jpg",
 "https://adaligand.github.io/EAL/School/Subjects/Images/Psychology.png"
 
-    ];
+];
 
-    function initializeExercise() {
-      for (var i = 0; i < englishSentences.length; i++) {
-        sentencePairs.push({ sentence: englishSentences[i], image: images[i] });
-      }
-      shuffleArray(sentencePairs);
-      generateChunk();
+function initializeExercise(){
+  for(var i=0;i<englishSentences.length;i++){
+    sentencePairs.push({sentence: englishSentences[i], image: images[i%images.length]});
+  }
+  shuffleArray(sentencePairs);
+  generateChunk();
+}
+
+function shuffleArray(array){
+  for(var i=array.length-1;i>0;i--){
+    var j=Math.floor(Math.random()*(i+1));
+    [array[i],array[j]]=[array[j],array[i]];
+  }
+}
+
+function isConsonant(char){
+  return /[bcdfghjklmnpqrstvwxyzBCDFGHJKLMNPQRSTVWXYZ]/.test(char);
+}
+
+function generateChunk(){
+  var sentenceObj = sentencePairs[currentTextIndex];
+  var exerciseOutput = document.getElementById('exerciseOutput');
+  exerciseOutput.innerHTML='';
+
+  // Image
+  var imgDiv = document.createElement('div');
+  imgDiv.classList.add('image-container');
+  imgDiv.innerHTML = `<img src="${sentenceObj.image}" alt="Image">`;
+  exerciseOutput.appendChild(imgDiv);
+
+  // Sentence
+  var sentenceDiv = document.createElement('div');
+  sentenceDiv.classList.add('sentence');
+  var sentenceWithInputs='';
+  for(var i=0;i<sentenceObj.sentence.length;i++){
+    var char = sentenceObj.sentence[i];
+    if(!vowels.includes(char.toLowerCase()) && /[a-zA-Z]/.test(char)){
+      sentenceWithInputs += `<input type="text" class="missing-word" data-index="${i}" oninput="validateCharacter(this)">`;
+    } else {
+      sentenceWithInputs += char;
     }
+  }
+  sentenceDiv.innerHTML = sentenceWithInputs;
 
-    function shuffleArray(array) {
-      for (var i = array.length - 1; i > 0; i--) {
-        var j = Math.floor(Math.random() * (i + 1));
-        [array[i], array[j]] = [array[j], array[i]];
-      }
+  // Next button at end
+  var nextBtn = document.createElement('button');
+  nextBtn.id='nextButton';
+  nextBtn.textContent='Next';
+  nextBtn.onclick=nextText;
+  nextBtn.classList.add('hide');
+  sentenceDiv.appendChild(nextBtn);
+
+  exerciseOutput.appendChild(sentenceDiv);
+
+  document.getElementById('sentenceCounter').textContent=(currentTextIndex+1)+'/'+sentencePairs.length;
+
+  // Focus first input
+  var firstInput = sentenceDiv.querySelector('.missing-word');
+  if(firstInput) firstInput.focus();
+}
+
+// Input handling
+function validateCharacter(input){
+  var index = input.getAttribute('data-index');
+  var correctChar = sentencePairs[currentTextIndex].sentence[index];
+  var value = input.value.trim();
+  input.classList.remove('correct','incorrect');
+  if(value==='') return;
+  if(value.toLowerCase()===correctChar.toLowerCase()) input.classList.add('correct');
+  else input.classList.add('incorrect');
+  if(value.length>0) jumpToNextInput(input);
+  checkAnswers();
+}
+
+function jumpToNextInput(input){
+  var next=input.nextElementSibling;
+  while(next && !next.classList.contains('missing-word')) next=next.nextElementSibling;
+  if(next) next.focus();
+}
+
+function jumpToPreviousInput(input){
+  var prev=input.previousElementSibling;
+  while(prev && !prev.classList.contains('missing-word')) prev=prev.previousElementSibling;
+  if(prev){ prev.focus(); prev.value=''; prev.classList.remove('correct','incorrect'); }
+}
+
+document.addEventListener('keydown', function(e){
+  var active=document.activeElement;
+  if(active && active.classList.contains('missing-word')){
+    if(e.key==='Backspace' && active.value===''){
+      e.preventDefault();
+      jumpToPreviousInput(active);
     }
+  }
+});
 
-    function generateChunk() {
-      var sentence = sentencePairs[currentTextIndex].sentence;
-      var sentenceWithInputFields = '';
+function checkAnswers(){
+  var sentenceDiv=document.querySelector('.sentence');
+  var inputs=sentenceDiv.querySelectorAll('.missing-word');
+  var allFilled=true;
+  inputs.forEach(i=>{ if(i.value==='') allFilled=false; });
+  var nextBtn=document.getElementById('nextButton');
+  if(allFilled) nextBtn.classList.remove('hide');
+  else nextBtn.classList.add('hide');
+}
 
-      for (var i = 0; i < sentence.length; i++) {
-        var char = sentence[i];
-        if (isConsonant(char)) {
-          sentenceWithInputFields += `<input type="text" class="missing-word" data-index="${i}" oninput="validateCharacter(this)" style="width:15px;">`;
-        } else {
-          sentenceWithInputFields += char;
-        }
-      }
-
-      var exerciseOutput = document.getElementById('exerciseOutput');
-      exerciseOutput.innerHTML = '';
-
-      var imageDiv = document.createElement('div');
-      imageDiv.classList.add('image-container');
-      imageDiv.innerHTML = `<img src="${sentencePairs[currentTextIndex].image}" alt="Exercise image">`;
-      exerciseOutput.appendChild(imageDiv);
-
-      var sentenceDiv = document.createElement('div');
-      sentenceDiv.classList.add('sentence');
-      sentenceDiv.innerHTML = sentenceWithInputFields;
-      exerciseOutput.appendChild(sentenceDiv);
-
-      document.getElementById('feedback').classList.add('hide');
-      document.getElementById('resetButton').classList.add('hide');
-      document.getElementById('nextButton').classList.add('hide');
-
-      document.getElementById('sentenceCounter').textContent = (currentTextIndex + 1) + '/' + sentencePairs.length;
-
-      var firstInput = exerciseOutput.querySelector('.missing-word');
-      if (firstInput) firstInput.focus();
-    }
-
-    function isConsonant(char) {
-      return /[bcdfghjklmnpqrstvwxyzBCDFGHJKLMNPQRSTVWXYZ]/.test(char);
-    }
-
-    function validateCharacter(input) {
-      var userInput = input.value.trim();
-      var correctChar = sentencePairs[currentTextIndex].sentence[input.getAttribute('data-index')];
-
-      if (userInput === '') {
-        input.classList.remove('correct', 'incorrect');
-      } else if (userInput.toLowerCase() === correctChar.toLowerCase()) {
-        input.classList.remove('incorrect');
-        input.classList.add('correct');
-      } else {
-        input.classList.remove('correct');
-        input.classList.add('incorrect');
-      }
-
-      if (userInput.length > 0) jumpToNextInput(input);
-      checkAnswers();
-    }
-
-    function jumpToNextInput(input) {
-      var nextInput = input.nextElementSibling;
-      while (nextInput && !nextInput.classList.contains('missing-word')) {
-        nextInput = nextInput.nextElementSibling;
-      }
-      if (nextInput) nextInput.focus();
-    }
-
-    function jumpToPreviousInput(input) {
-      var prevInput = input.previousElementSibling;
-      while (prevInput && !prevInput.classList.contains('missing-word')) {
-        prevInput = prevInput.previousElementSibling;
-      }
-      if (prevInput) {
-        prevInput.focus();
-        prevInput.value = '';
-        prevInput.classList.remove('correct', 'incorrect');
-      }
-    }
-
-    document.addEventListener('keydown', function(event) {
-      var active = document.activeElement;
-      if (active && active.classList.contains('missing-word')) {
-        if (event.key === 'Backspace' && active.value === '') {
-          event.preventDefault();
-          jumpToPreviousInput(active);
-        }
-      }
-    });
-
-    function checkAnswers() {
-      var inputFields = document.querySelectorAll('.missing-word');
-      var allCorrect = true;
-      inputFields.forEach(function(input) {
-        if (!input.classList.contains('correct')) allCorrect = false;
-      });
-      if (allCorrect) {
-        if (currentTextIndex === sentencePairs.length - 1) {
-          document.getElementById('resetButton').classList.remove('hide');
-        } else {
-          document.getElementById('nextButton').classList.remove('hide');
-        }
-      }
-    }
-
-    function nextText() {
-      currentTextIndex = (currentTextIndex + 1) % sentencePairs.length;
-      if (currentTextIndex === 0) {
-        resetActivity();
-      } else {
-        generateChunk();
-      }
-    }
-
-    function resetActivity() {
-      currentTextIndex = 0;
-      shuffleArray(sentencePairs);
-      generateChunk();
-    }
-  </script>
+function nextText(){
+  currentTextIndex=(currentTextIndex+1)%sentencePairs.length;
+  generateChunk();
+}
+</script>
 </body>
 </html>
-
