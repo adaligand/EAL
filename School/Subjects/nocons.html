@@ -38,7 +38,7 @@ var vowels = ['a','e','i','o','u'];
 
 // Sentences
 var englishSentences = [
- "Art",
+"Art",
 "Business",
 "Biology",
 "Chemistry",
@@ -63,7 +63,7 @@ var englishSentences = [
 
 // Images
 var images = [
-"https://adaligand.github.io/EAL/School/Subjects/Images/Art.png",
+ "https://adaligand.github.io/EAL/School/Subjects/Images/Art.png",
 "https://adaligand.github.io/EAL/School/Subjects/Images/Business.png",
 "https://adaligand.github.io/EAL/School/Subjects/Images/Biology.png",
 "https://adaligand.github.io/EAL/School/Subjects/Images/Chemistry.png",
@@ -156,6 +156,7 @@ function validateCharacter(input){
   if(value==='') return;
   if(value.toLowerCase()===correctChar.toLowerCase()) input.classList.add('correct');
   else input.classList.add('incorrect');
+
   if(value.length>0) jumpToNextInput(input);
   checkAnswers();
 }
@@ -185,10 +186,12 @@ document.addEventListener('keydown', function(e){
 function checkAnswers(){
   var sentenceDiv=document.querySelector('.sentence');
   var inputs=sentenceDiv.querySelectorAll('.missing-word');
-  var allFilled=true;
-  inputs.forEach(i=>{ if(i.value==='') allFilled=false; });
+  var allCorrect=true;
+  inputs.forEach(i=>{
+    if(!i.classList.contains('correct')) allCorrect=false;
+  });
   var nextBtn=document.getElementById('nextButton');
-  if(allFilled) nextBtn.classList.remove('hide');
+  if(allCorrect) nextBtn.classList.remove('hide');
   else nextBtn.classList.add('hide');
 }
 
