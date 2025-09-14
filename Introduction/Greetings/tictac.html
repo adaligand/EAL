@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tic Tac Toe</title>
+<style>
+  body { font-family: Arial, sans-serif; text-align: center; padding: 20px; }
+  #container { display: flex; justify-content: center; align-items: flex-start; gap: 20px; }
+  #grid { display: grid; gap: 10px; }
+  .cell { 
+    position: relative; 
+    width: 150px;   
+    height: 150px;  
+    border: 1px solid #999; 
+    border-radius: 10px; 
+    cursor: pointer; 
+  }
+  .cell img { 
+    width: 100%; 
+    height: 100%; 
+    object-fit: cover; 
+    border-radius: 10px; 
+  }
+  .overlay { 
+    position: absolute; 
+    top:0; left:0; 
+    width:100%; height:100%; 
+    background-color: rgba(255,0,0,0.4); 
+    opacity:0; 
+    border-radius:10px; 
+    transition: opacity 0.3s; 
+    pointer-events: none; 
+  }
+  .mark {
+    position:absolute;
+    top:0; left:0;
+    width:100%; height:100%;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    font-size:200px;
+    font-weight:bold;
+    color:rgba(249, 249, 8, 0.871); 
+    pointer-events:none;
+    user-select:none;
+  }
+  #words { display:flex; flex-direction: column; gap:10px; }
+  .word { 
+  padding:5px 10px; 
+  border:1px solid #ccc; 
+  border-radius:5px; 
+  cursor: grab; 
+  background-color:#f0f0f0; 
+  user-select:none; 
+  width: 180px;       /* ✅ fixed width */
+  text-align: center; /* ✅ keeps text neat */
+  box-sizing: border-box;
+}
+  #turn { margin-top:20px; font-size:20px; font-weight:bold; }
+  #restart { 
+    margin-top:15px; 
+    padding:8px 15px; 
+    font-size:16px; 
+    border:1px solid #ccc; 
+    border-radius:5px; 
+   background-color:#f0f0f0; 
+    
+    cursor:pointer; 
+    display:none;
+  }
+</style>
+</head>
+<body>
+
+<h1>Tic Tac Toe</h1>
+<div id="container">
+  <div id="grid"></div>
+  <div id="words"></div>
+</div>
+<div id="turn">Turn: X</div>
+<button id="restart">Restart Game</button>
+
+<script>
+const masterWords = [
+  "Art","Business","Biology","Chemistry","Child development","Computer Science",
+  "Drama","English","Food Tech","French","Geography","German",
+  "History","Maths","Media","Music","P.E.","Physics","RHSE","Psychology"
+];
+const masterImages = [
+"https://adaligand.github.io/EAL/School/Subjects/Images/Art.png",
+"https://adaligand.github.io/EAL/School/Subjects/Images/Business.png",
+"https://adaligand.github.io/EAL/School/Subjects/Images/Biology.png",
+"https://adaligand.github.io/EAL/School/Subjects/Images/Chemistry.png",
+"https://adaligand.github.io/EAL/School/Subjects/Images/Childdev.png",
+"https://adaligand.github.io/EAL/School/Subjects/Images/Computing.png",
+"https://adaligand.github.io/EAL/School/Subjects/Images/Drama.png",
+"https://adaligand.github.io/EAL/School/Subjects/Images/English.png",
+"https://adaligand.github.io/EAL/School/Subjects/Images/Food.png",
+"https://adaligand.github.io/EAL/School/Subjects/Images/French.png",
+"https://adaligand.github.io/EAL/School/Subjects/Images/Geo.png",
+"https://adaligand.github.io/EAL/School/Subjects/Images/German.png",
+"https://adaligand.github.io/EAL/School/Subjects/Images/History.png",
+"https://adaligand.github.io/EAL/School/Subjects/Images/Maths.png",
+"https://adaligand.github.io/EAL/School/Subjects/Images/Media.png",
+"https://adaligand.github.io/EAL/School/Subjects/Images/Music.png",
+"https://adaligand.github.io/EAL/School/Subjects/Images/PE.png",
+"https://adaligand.github.io/EAL/School/Subjects/Images/Physics.png",
+"https://adaligand.github.io/EAL/School/Subjects/Images/RSHE.jpg",
+"https://adaligand.github.io/EAL/School/Subjects/Images/Psychology.png"
+];
+
+let turn = 'X';
+let gameOver = false;
+const grid = document.getElementById('grid');
+const wordsDiv = document.getElementById('words');
+const turnDiv = document.getElementById('turn');
+const restartBtn = document.getElementById('restart');
+
+function shuffle(array){
+  for(let i=array.length-1;i>0;i--){
+    const j=Math.floor(Math.random()*(i+1));
+    [array[i],array[j]]=[array[j],array[i]];
+  }
+  return array;
+}
+
+function checkWinner(){
+  const cells = [...document.querySelectorAll('.cell .mark')].map(m=>m.textContent);
+  const winPatterns = [
+    [0,1,2],[3,4,5],[6,7,8], // rows
+    [0,3,6],[1,4,7],[2,5,8], // cols
+    [0,4,8],[2,4,6]          // diagonals
+  ];
+  for(const pattern of winPatterns){
+    const [a,b,c] = pattern;
+    if(cells[a] && cells[a]===cells[b] && cells[a]===cells[c]){
+      turnDiv.textContent = cells[a] + " wins!";
+      gameOver = true;
+      restartBtn.style.display = "inline-block";
+      return true;
+    }
+  }
+  if(cells.every(c=>c)){ // draw
+    turnDiv.textContent = "It's a draw!";
+    gameOver = true;
+    restartBtn.style.display = "inline-block";
+  }
+  return false;
+}
+
+function generateGame(){
+  grid.innerHTML = '';
+  wordsDiv.innerHTML = '';
+  turn = 'X';
+  gameOver = false;
+  restartBtn.style.display = "none";
+  turnDiv.textContent = "Turn: X";
+
+  // select 9 random pairs
+  let pairs = masterImages.map((img,i)=>({img,imgWord:masterWords[i]}));
+  let selected = shuffle(pairs).slice(0,9);
+
+  const columns = 3;
+  grid.style.gridTemplateColumns = `repeat(${columns}, 150px)`;
+
+  // create cells
+  selected.forEach(pair=>{
+    const cell = document.createElement('div');
+    cell.className = 'cell';
+    cell.dataset.word = pair.imgWord;
+
+    const img = document.createElement('img');
+    img.src = pair.img;
+    cell.appendChild(img);
+
+    const overlay = document.createElement('div');
+    overlay.className='overlay';
+    cell.appendChild(overlay);
+
+    const mark = document.createElement('div');
+    mark.className='mark';
+    cell.appendChild(mark);
+
+    cell.addEventListener('dragover',e=>e.preventDefault());
+    cell.addEventListener('drop',e=>{
+      if(gameOver) return;
+      const dragged = e.dataTransfer.getData('text');
+      const wordEl = document.querySelector(`.word[data-word='${dragged}']`);
+      if(dragged===cell.dataset.word && !mark.textContent){
+        mark.textContent = turn;
+        mark.style.color = turn==='X'?'rgba(255,100,100,0.7)':'rgba(100,100,255,0.7)';
+        if(wordEl) wordEl.remove();
+        if(!checkWinner()){
+          turn = turn==='X'?'O':'X';
+          turnDiv.textContent = 'Turn: '+turn;
+        }
+      } else {
+        overlay.style.opacity='0.7';
+        setTimeout(()=>overlay.style.opacity='0',500);
+        if(wordEl) wordsDiv.appendChild(wordEl);
+      }
+    });
+
+    grid.appendChild(cell);
+  });
+
+  // create draggable words
+  shuffle(selected).forEach(pair=>{
+    const wordEl = document.createElement('div');
+    wordEl.className='word';
+    wordEl.textContent = pair.imgWord;
+    wordEl.setAttribute('draggable','true');
+    wordEl.dataset.word=pair.imgWord;
+    wordEl.addEventListener('dragstart',e=>{
+      e.dataTransfer.setData('text',pair.imgWord);
+    });
+    wordsDiv.appendChild(wordEl);
+  });
+}
+
+restartBtn.addEventListener('click',generateGame);
+
+generateGame();
+</script>
+</body>
+</html>
