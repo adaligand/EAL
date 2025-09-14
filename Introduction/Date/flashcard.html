@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Flashcards</title>
+  <style>
+    body {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      background-color: transparent;
+      font-family: Arial, sans-serif;
+      flex-direction: column;
+    }
+
+    .flashcard-container {
+      perspective: 1000px;
+      margin-bottom: 20px;
+    }
+
+    .flashcard {
+      width: 500px;
+      height: 300px;
+      background-color: white;
+      border-radius: 10px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-size: 50px;
+      font-weight: bold;
+      cursor: pointer;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+      text-align: center;
+      transform-style: preserve-3d;
+      transition: transform 0.6s;
+      position: relative;
+    }
+
+    .flipped { transform: rotateY(180deg); }
+
+    .flashcard .front, .flashcard .back {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      backface-visibility: hidden;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      border-radius: 10px;
+      padding: 10px;
+      box-sizing: border-box;
+    }
+
+    .flashcard .back {
+      background-color: white;        /* inside white */
+      border: 10px solid lightblue;   /* thick light-blue border */
+      transform: rotateY(180deg);
+    }
+
+    .flashcard img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain; /* keeps full image visible */
+      border-radius: 5px;
+    }
+
+    .button-container { display: flex; gap: 10px; margin-top: 10px; }
+    .quiz-container, .text-input-container, .reset-container { display: none; margin-top: 20px; text-align: center; }
+
+    button {
+      padding: 10px 15px;
+      background-color: #f9f9f9;
+      color: #000000;
+      border: 2px solid #ccc;
+      border-radius: 10px;
+      cursor: pointer;
+      font-size: 24px;
+    }
+
+    button:hover { background-color: #A9A9A9; transform: translateY(-4px); }
+
+    .hidden { display: none; }
+
+    .quiz-options {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-top: 20px;
+    }
+
+    .quiz-options button {
+      width: 200px;
+      height: 100px;
+      font-size: 20px;
+    }
+
+    input {
+      font-size: 20px;
+      padding: 10px;
+      border-radius: 10px;
+      transition: border-color 0.3s;
+    }
+
+    input.error { border-color: red; background-color: #f8d7da; }
+    input.correct { border-color: green; background-color: #d4edda; }
+
+    .congratulations {
+      font-size: 24px;
+      font-weight: bold;
+      margin-top: 20px;
+      color: green;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+  <div class="flashcard-container">
+    <div class="flashcard" onclick="flipCard()">
+      <div class="front" id="frontText">Loading...</div>
+      <div class="back" id="backText">Loading...</div>
+    </div>
+  </div>
+
+  <div class="button-container">
+    <button onclick="previousStep()" id="previousButton" class="hidden">Previous</button>
+    <button onclick="nextStep()">Next</button>
+  </div>
+
+  <div class="quiz-container" id="quizContainer"></div>
+  <div class="text-input-container" id="textInputContainer"></div>
+
+  <div class="reset-container">
+    <button onclick="resetExercise()">Restart Exercise</button>
+  </div>
+
+  <div class="congratulations hidden" id="congratulationsMessage"></div>
+
+<script>
+  let currentIndex = 0;
+  let phase = 0; // 0: Flashcards, 1: Multiple Choice, 2: Typing
+  let cycleIndex = 0;
+
+  let englishImages = [
+    "https://adaligand.github.io/EAL/Images/Art.png",
+    "https://adaligand.github.io/EAL/Images/Biology.png",
+    "https://adaligand.github.io/EAL/Images/Chemistry.png",
+    "https://adaligand.github.io/EAL/Images/Childdev.PNG",
+    "https://adaligand.github.io/EAL/Images/Computing.png",
+    "https://adaligand.github.io/EAL/Images/Drama.png",
+    "https://adaligand.github.io/EAL/Images/English.png",
+    "https://adaligand.github.io/EAL/Images/Food.png",
+  ];
+
+  let translations = [
+    "Art", "Biology", "Chemistry", "Child development", "Computer Science", "Drama", "English", "Food Tech"
+  ];
+
+  function updateCard() {
+    if (currentIndex < englishImages.length) {
+      document.getElementById('frontText').textContent = translations[currentIndex];
+      document.getElementById('backText').innerHTML =
+        `<img src="${englishImages[currentIndex]}" alt="English word">`;
+      document.querySelector('.flashcard').classList.remove('flipped');
+    } else {
+      showCongratulations();
+    }
+  }
+
+  function flipCard() { document.querySelector('.flashcard').classList.toggle('flipped'); }
+
+  function nextStep() {
+    let flashcardContainer = document.querySelector('.flashcard-container');
+    let buttonContainer = document.querySelector('.button-container');
+    let quizContainer = document.getElementById('quizContainer');
+    let textInputContainer = document.getElementById('textInputContainer');
+    let previousButton = document.getElementById('previousButton');
+
+    flashcardContainer.style.display = 'none';
+    quizContainer.style.display = 'none';
+    textInputContainer.style.display = 'none';
+    buttonContainer.style.display = 'none';
+    previousButton.classList.add('hidden');
+
+    if (currentIndex < englishImages.length) {
+      if (phase === 0) {
+        flashcardContainer.style.display = 'block';
+        buttonContainer.style.display = 'flex';
+        updateCard();
+        if (currentIndex % 2 === 1) {
+          phase = 1;
+          currentIndex = cycleIndex * 2;
+        } else {
+          currentIndex++;
+        }
+        previousButton.classList.remove('hidden');
+      } else if (phase === 1) {
+        quizContainer.style.display = 'block';
+        showQuiz();
+        if (currentIndex % 2 === 1) {
+          phase = 2;
+          currentIndex = cycleIndex * 2;
+        } else {
+          currentIndex++;
+        }
+      } else if (phase === 2) {
+        textInputContainer.style.display = 'block';
+        showTextInput();
+        if (currentIndex === englishImages.length - 1) showCongratulations();
+        else if (currentIndex % 2 === 1) {
+          cycleIndex++;
+          if (cycleIndex * 2 < englishImages.length) {
+            phase = 0;
+            currentIndex = cycleIndex * 2;
+          } else showCongratulations();
+        } else currentIndex++;
+      }
+    }
+  }
+
+  function previousStep() {
+    if (phase === 0) {
+      currentIndex = Math.max(0, currentIndex - 1);
+      updateCard();
+    } else if (phase === 1 || phase === 2) {
+      cycleIndex = Math.max(0, cycleIndex - 1);
+      currentIndex = cycleIndex * 2;
+      phase = 0;
+      updateCard();
+    }
+  }
+
+  function showQuiz() {
+    let quizContainer = document.getElementById('quizContainer');
+    quizContainer.innerHTML = "";
+    let correctAnswer = translations[currentIndex];
+    let options = shuffle([correctAnswer, ...translations.filter(w => w !== correctAnswer).slice(0, 3)]);
+
+    let div = document.createElement('div');
+    div.innerHTML = `<h3>What is the English for ...?</h3>
+                     <img src="${englishImages[currentIndex]}" alt="English word" style="max-width:300px; display:block; margin:10px auto;">`;
+
+    let optionsDiv = document.createElement('div');
+    optionsDiv.className = "quiz-options";
+
+    options.forEach(option => {
+      let btn = document.createElement('button');
+      btn.textContent = option;
+      btn.onclick = () => {
+        if (option === correctAnswer) nextStep();
+        else alert('Incorrect! Try again.');
+      };
+      optionsDiv.appendChild(btn);
+    });
+    div.appendChild(optionsDiv);
+    quizContainer.appendChild(div);
+  }
+
+  function showTextInput() {
+    let textInputContainer = document.getElementById('textInputContainer');
+    textInputContainer.innerHTML = "";
+    let correctAnswer = translations[currentIndex];
+    textInputContainer.innerHTML = `<h3>Type the translation for this:</h3>
+                                    <img src="${englishImages[currentIndex]}" alt="English word" style="max-width:300px; display:block; margin:10px auto;">`;
+
+    let input = document.createElement('input');
+    input.type = "text";
+    input.placeholder = "Type here...";
+    let submitBtn = document.createElement('button');
+    submitBtn.textContent = "Submit";
+    textInputContainer.appendChild(input);
+    textInputContainer.appendChild(submitBtn);
+    input.focus();
+
+    input.addEventListener('keydown', event => { if (event.key === 'Enter') submitBtn.click(); });
+
+    submitBtn.onclick = () => {
+      if (input.value.trim().toLowerCase() === correctAnswer.toLowerCase()) {
+        input.classList.remove('error');
+        input.classList.add('correct');
+        nextStep();
+      } else input.classList.add('error');
+    };
+  }
+
+  function shuffle(arr) {
+    for (let i = arr.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [arr[i], arr[j]] = [arr[j], arr[i]];
+    }
+    return arr;
+  }
+
+  function showCongratulations() {
+    document.querySelector('.flashcard-container').style.display = 'none';
+    document.querySelector('.quiz-container').style.display = 'none';
+    document.querySelector('.text-input-container').style.display = 'none';
+    document.querySelector('.button-container').style.display = 'none';
+    let congratulationsMessage = document.getElementById('congratulationsMessage');
+    congratulationsMessage.classList.remove('hidden');
+    congratulationsMessage.textContent = "🎉 Congratulations! You've completed all the exercises! 🎉";
+    document.querySelector('.reset-container').style.display = 'block';
+  }
+
+  function resetExercise() {
+    currentIndex = 0;
+    cycleIndex = 0;
+    phase = 0;
+    document.getElementById('congratulationsMessage').classList.add('hidden');
+    document.querySelector('.reset-container').style.display = 'none';
+    nextStep();
+  }
+
+  nextStep();
+</script>
+</body>
+</html>
