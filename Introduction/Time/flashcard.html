@@ -263,59 +263,81 @@
       updateCard();
     }
   }
+function showQuiz() {
+  let quizContainer = document.getElementById('quizContainer');
+  quizContainer.innerHTML = "";
 
-  function showQuiz() {
-    let quizContainer = document.getElementById('quizContainer');
-    quizContainer.innerHTML = "";
-    let correctAnswer = translations[currentIndex];
-    let options = shuffle([correctAnswer, ...translations.filter(w => w !== correctAnswer).slice(0, 3)]);
+  let correctAnswer = translations[currentIndex];
+  let options = shuffle([correctAnswer, ...translations.filter(w => w !== correctAnswer).slice(0, 3)]);
 
-    let div = document.createElement('div');
-    div.innerHTML = `<h3>What is the English for ...?</h3>
-                     <img src="${englishImages[currentIndex]}" alt="English word" style="max-width:300px; display:block; margin:10px auto;">`;
+  let div = document.createElement('div');
+  div.innerHTML = `<h3>What is the English for ...?</h3>
+                   <img src="${englishImages[currentIndex]}" alt="English word" style="max-width:300px; display:block; margin:10px auto;">`;
 
-    let optionsDiv = document.createElement('div');
-    optionsDiv.className = "quiz-options";
+  let optionsDiv = document.createElement('div');
+  optionsDiv.className = "quiz-options";
 
-    options.forEach(option => {
-      let btn = document.createElement('button');
-      btn.textContent = option;
-      btn.onclick = () => {
-        if (option === correctAnswer) nextStep();
-        else alert('Incorrect! Try again.');
-      };
-      optionsDiv.appendChild(btn);
-    });
-    div.appendChild(optionsDiv);
-    quizContainer.appendChild(div);
-  }
-
-  function showTextInput() {
-    let textInputContainer = document.getElementById('textInputContainer');
-    textInputContainer.innerHTML = "";
-    let correctAnswer = translations[currentIndex];
-    textInputContainer.innerHTML = `<h3>Type the translation for this:</h3>
-                                    <img src="${englishImages[currentIndex]}" alt="English word" style="max-width:300px; display:block; margin:10px auto;">`;
-
-    let input = document.createElement('input');
-    input.type = "text";
-    input.placeholder = "Type here...";
-    let submitBtn = document.createElement('button');
-    submitBtn.textContent = "Submit";
-    textInputContainer.appendChild(input);
-    textInputContainer.appendChild(submitBtn);
-    input.focus();
-
-    input.addEventListener('keydown', event => { if (event.key === 'Enter') submitBtn.click(); });
-
-    submitBtn.onclick = () => {
-      if (input.value.trim().toLowerCase() === correctAnswer.toLowerCase()) {
-        input.classList.remove('error');
-        input.classList.add('correct');
+  options.forEach(option => {
+    let btn = document.createElement('button');
+    btn.textContent = option;
+    btn.onclick = () => {
+      if (option === correctAnswer) {
         nextStep();
-      } else input.classList.add('error');
+      } else {
+        alert('Incorrect! Starting this set over.');
+        // Reset to start of the current flashcard set
+        currentIndex = cycleIndex * 2;
+        phase = 0;
+        updateCard();
+        document.querySelector('.flashcard-container').style.display = 'block';
+        quizContainer.style.display = 'none';
+        document.querySelector('.button-container').style.display = 'flex';
+      }
     };
-  }
+    optionsDiv.appendChild(btn);
+  });
+
+  div.appendChild(optionsDiv);
+  quizContainer.appendChild(div);
+}
+
+
+ function showTextInput() {
+  let textInputContainer = document.getElementById('textInputContainer');
+  textInputContainer.innerHTML = "";
+  let correctAnswer = translations[currentIndex];
+
+  textInputContainer.innerHTML = `<h3>Type the translation for this:</h3>
+                                  <img src="${englishImages[currentIndex]}" alt="English word" style="max-width:300px; display:block; margin:10px auto;">`;
+
+  let input = document.createElement('input');
+  input.type = "text";
+  input.placeholder = "Type here...";
+  let submitBtn = document.createElement('button');
+  submitBtn.textContent = "Submit";
+
+  textInputContainer.appendChild(input);
+  textInputContainer.appendChild(submitBtn);
+  input.focus();
+
+  input.addEventListener('keydown', event => { if (event.key === 'Enter') submitBtn.click(); });
+
+  submitBtn.onclick = () => {
+    if (input.value.trim().toLowerCase() === correctAnswer.toLowerCase()) {
+      input.classList.remove('error');
+      input.classList.add('correct');
+      nextStep();
+    } else {
+      alert('Incorrect! Starting this set over.');
+      currentIndex = cycleIndex * 2;
+      phase = 0;
+      updateCard();
+      document.querySelector('.flashcard-container').style.display = 'block';
+      textInputContainer.style.display = 'none';
+      document.querySelector('.button-container').style.display = 'flex';
+    }
+  };
+}
 
   function shuffle(arr) {
     for (let i = arr.length - 1; i > 0; i--) {
@@ -349,5 +371,6 @@
 </script>
 </body>
 </html>
+
 
 
