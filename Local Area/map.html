@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>ESL Town - Fixed Validation</title>
+    <style>
+        body { font-family: 'Comic Sans MS', cursive; background: #2d3436; color: white; display: flex; flex-direction: column; align-items: center; margin: 0; overflow: hidden; }
+        #ui { background: white; color: #333; padding: 15px; width: 100%; text-align: center; box-shadow: 0 4px 10px rgba(0,0,0,0.3); z-index: 10; }
+        #city-map { position: relative; width: 700px; height: 800px; background: #95a5a6; margin: 20px; border: 8px solid #636e72; border-radius: 8px; }
+        .building { position: absolute; background: white; border: 2px solid #2d3436; display: flex; flex-direction: column; justify-content: center; align-items: center; color: #2d3436; font-weight: bold; font-size: 11px; border-radius: 4px; }
+        .door { position: absolute; background: #795548; }
+        .door-h { width: 24px; height: 8px; }
+        .door-v { width: 8px; height: 24px; }
+        .street-name { position: absolute; font-size: 11px; color: #dfe6e9; text-transform: uppercase; font-weight: bold; letter-spacing: 1px; pointer-events: none; }
+        #player { position: absolute; width: 22px; height: 22px; background: #e17055; border: 2px solid white; border-radius: 50%; z-index: 100; display: flex; justify-content: center; align-items: center; }
+        .btn { border: none; padding: 12px 25px; border-radius: 5px; cursor: pointer; font-weight: bold; font-size: 1.1em; margin: 5px; }
+        #btn-new { background: #00b894; color: white; }
+        #btn-retry { background: #f39c12; color: white; display: none; }
+    </style>
+</head>
+<body>
+
+<div id="ui">
+    <div id="mission-text" style="font-size: 1.2em; min-height: 50px; margin-bottom: 10px;">Click "New Mission" to start!</div>
+    <div id="controls">
+        <button id="btn-new" class="btn" onclick="startMission()">New Mission</button>
+        <button id="btn-retry" class="btn" onclick="resetPlayer()">Try Again</button>
+    </div>
+</div>
+
+<div id="city-map">
+    <div class="street-name" style="top: 140px; left: 320px;">High Street</div>
+    <div class="street-name" style="top: 310px; left: 320px;">Market Street</div>
+    <div class="street-name" style="top: 480px; left: 320px;">Garden Road</div>
+    <div class="street-name" style="top: 350px; left: 165px; transform: rotate(-90deg);">River Road</div>
+    <div class="street-name" style="top: 350px; right: 165px; transform: rotate(90deg);">Green Street</div>
+
+    <div class="building" id="hospital" style="top: 10px; left: 20px; width: 130px; height: 110px;">🏥 Hospital<div class="door door-v" style="right:-4px; top:43px;"></div></div>
+    <div class="building" id="bank" style="top: 10px; left: 285px; width: 130px; height: 110px;">🏦 Bank<div class="door door-h" style="bottom:-4px; left:53px;"></div></div>
+    <div class="building" id="mall" style="top: 10px; right: 20px; width: 130px; height: 110px;">🛍️ Shopping centre<div class="door door-v" style="left:-4px; top:43px;"></div></div>
+    <div class="building" id="theatre" style="top: 180px; left: 20px; width: 130px; height: 110px;">🎭 Theatre<div class="door door-h" style="top:-4px; left:53px;"></div></div>
+    <div class="building" id="park" style="top: 180px; left: 285px; width: 130px; height: 110px; background: #55efc4;">🌳 Park</div>
+    <div class="building" id="cinema" style="top: 180px; right: 20px; width: 130px; height: 110px;">🎬 Cinema<div class="door door-h" style="top:-4px; left:53px;"></div></div>
+    <div class="building" id="bookshop" style="top: 350px; left: 20px; width: 130px; height: 110px;">📚 Bookshop<div class="door door-v" style="right:-4px; top:43px;"></div></div>
+    <div class="building" id="library" style="top: 350px; left: 285px; width: 130px; height: 110px;">📖 Library<div class="door door-h" style="bottom:-4px; left:53px;"></div></div>
+    <div class="building" id="sports" style="top: 350px; right: 20px; width: 130px; height: 110px;">⚽ Sports centre<div class="door door-v" style="left:-4px; top:43px;"></div></div>
+    <div class="building" id="toyshop" style="top: 520px; left: 20px; width: 130px; height: 110px;">🧸 Toy Shop<div class="door door-h" style="top:-4px; left:53px;"></div></div>
+    <div class="building" id="cafe" style="top: 520px; left: 285px; width: 130px; height: 110px;">☕ Café<div class="door door-h" style="top:-4px; left:53px;"></div></div>
+    <div class="building" id="petshop" style="top: 520px; right: 20px; width: 130px; height: 110px;">🐶 Pet Shop<div class="door door-h" style="top:-4px; left:53px;"></div></div>
+
+    <div id="player">👤</div>
+    <div style="position: absolute; top: 680px; left: 335px; color: #d63031; font-weight: bold;">START</div>
+</div>
+
+<script>
+    const player = document.getElementById('player');
+    const missionText = document.getElementById('mission-text');
+    const btnNew = document.getElementById('btn-new');
+    const btnRetry = document.getElementById('btn-retry');
+
+    let pX = 338, pY = 650, targetId = "", currentMission = "";
+
+    const missions = [
+        { id: "mall", text: "Take the first street on your right. Then go straight on. It is the fourth building on your right." },
+        { id: "hospital", text: "Take the first street on your left and go straight to the very end of the road. It's the last building on your left." },
+        { id: "cafe", text: "Take the first street on your left and turn right. It's immediately on your right." },
+        { id: "toyshop", text: "Take the first street on your left and take the first street on your left. It's the building on your left." },
+        { id: "petshop", text: "Turn right at the first junction. It's the building in front of you." },
+        { id: "library", text: "Go straight. Pass the first junction and stop. It's right in front of you." },
+        { id: "sports", text: "Go straight, take the second right. It's the building on your right." },
+        { id: "bookshop", text: "Go straight, take the second left. It's the building on your left." },
+        { id: "bank", text: "Go straight, past the green area. The entrance is right in front of you at the end of the road." },
+        { id: "theatre", text: "Go straight, take the second left and then turn right into River Road. It's on your right." },
+        { id: "cinema", text: "Go straight, take the second left and then turn right into River Road. It's on your right." }
+    ];
+
+    function updateUI() { player.style.left = pX + 'px'; player.style.top = pY + 'px'; }
+
+    function canMove(x, y) {
+        const buildings = document.querySelectorAll('.building');
+        const mapRect = document.getElementById('city-map').getBoundingClientRect();
+        if (x < 0 || x > 675 || y < 0 || y > 775) return false;
+
+        for (let b of buildings) {
+            const r = b.getBoundingClientRect();
+            const bL = r.left - mapRect.left, bR = r.right - mapRect.left, bT = r.top - mapRect.top, bB = r.bottom - mapRect.top;
+            if (x + 22 > bL && x < bR && y + 22 > bT && y < bB) {
+                const door = b.querySelector('.door');
+                if (!door) return false;
+                const dR = door.getBoundingClientRect();
+                if (x+22 > dR.left - mapRect.left && x < dR.right - mapRect.left && y+22 > dR.top - mapRect.top && y < dR.bottom - mapRect.top) return true;
+                return false; 
+            }
+        }
+        return true;
+    }
+
+    window.addEventListener('keydown', (e) => {
+        if (!targetId || !["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"].includes(e.key)) return;
+        let nX = pX, nY = pY, step = 15;
+        if (e.key === 'ArrowUp') nY -= step;
+        if (e.key === 'ArrowDown') nY += step;
+        if (e.key === 'ArrowLeft') nX -= step;
+        if (e.key === 'ArrowRight') nX += step;
+        if (canMove(nX, nY)) { pX = nX; pY = nY; updateUI(); checkArrival(); }
+    });
+
+    function startMission() {
+        const m = missions[Math.floor(Math.random() * missions.length)];
+        targetId = m.id; currentMission = m.text;
+        missionText.innerHTML = `<i>"${currentMission}"</i>`;
+        missionText.style.color = "#0984e3";
+        btnNew.style.display = "none";
+        resetPlayer();
+    }
+
+    function resetPlayer() {
+        pX = 338; pY = 650; updateUI();
+        btnRetry.style.display = "none";
+        missionText.innerHTML = `<i>"${currentMission}"</i>`;
+        missionText.style.color = "#0984e3";
+    }
+
+    function checkArrival() {
+        const mapRect = document.getElementById('city-map').getBoundingClientRect();
+        const b = document.getElementById(targetId);
+        const r = b.getBoundingClientRect();
+        const bL = r.left - mapRect.left, bR = r.right - mapRect.left, bT = r.top - mapRect.top, bB = r.bottom - mapRect.top;
+
+        // Si on est dans le bon bâtiment
+        if (pX > bL && pX < bR && pY > bT && pY < bB) {
+            missionText.innerHTML = "✅ <b>EXCELLENT!</b> Mission Accomplished!";
+            missionText.style.color = "#27ae60";
+            targetId = ""; // Désactive le mouvement
+            btnNew.style.display = "inline-block";
+        } else {
+            // Vérifier si on est entré dans un MAUVAIS bâtiment
+            document.querySelectorAll('.building').forEach(other => {
+                if (other.id === targetId || other.id === "park") return;
+                const or = other.getBoundingClientRect();
+                if (pX > or.left-mapRect.left && pX < or.right-mapRect.left && pY > or.top-mapRect.top && pY < or.bottom-mapRect.top) {
+                    missionText.innerHTML = "❌ <b>WRONG!</b> This is the " + other.id.toUpperCase();
+                    missionText.style.color = "#d63031";
+                    btnRetry.style.display = "inline-block";
+                }
+            });
+        }
+    }
+    updateUI();
+</script>
+</body>
+</html>
